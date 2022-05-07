@@ -13,7 +13,7 @@ start(true)
 async function start(first = false) {
 
   if (first) {
-    log(chalk.blue('// Welcome to my sales case'))
+    log(chalk.blue('// Welcome to my sales case'));
   }
 
   const { menu } = await inquirer.prompt([{
@@ -41,14 +41,14 @@ async function start(first = false) {
   } else if (menu.includes('5')) {
     return listSellers();
   } else if (menu.includes('6')) {
-    log(chalk.green('-- Goodbye! :)'))
+    log(chalk.green('-- Goodbye! :)'));
   }
 }
 
 async function listSellers() {
   if (sellers.length === 0) {
-    log(chalk.red('No registered seller!'))
-    return start()
+    log(chalk.red('No registered seller!'));
+    return start();
   }
   log(chalk.blue('// Sellers list'))
   const { selectedSeller } = await inquirer.prompt([{
@@ -62,10 +62,10 @@ async function listSellers() {
   }]);
 
   if (selectedSeller === 'Return') {
-    return start()
+    return start();
   }
 
-  log(chalk.blue('// Seller options'))
+  log(chalk.blue('// Seller options'));
   const { option } = await inquirer.prompt([{
     type: 'list',
     name: 'option',
@@ -73,12 +73,12 @@ async function listSellers() {
     choices: [
       '1 - Edit',
       '2 - Delete',
-      'Return'
+      '3 - Return'
     ]
   }]);
 
-  if (option === 'Return') {
-    return listSellers()
+  if (option.includes('3')) {
+    return listSellers();
   } else if (option.includes('2'))  {
     log(chalk.blue('// Seller delete'))
     const { confirm } = await inquirer.prompt([{
@@ -92,20 +92,20 @@ async function listSellers() {
     }]);
 
     if (confirm.includes('1')) {
-      const sellerId = parseFloat(selectedSeller.split(' - ')[0])
+      const sellerId = parseFloat(selectedSeller.split(' - ')[0]);
       for (let i = 0; i < sellers.length; i++) {
         if (sellerId === sellers[i].id) {
-          sellers.splice(i, 1)
-          log(chalk.green('-- Seller successfully deleted!'))
-          return listSellers()
+          sellers.splice(i, 1);
+          log(chalk.green('-- Seller successfully deleted!'));
+          return listSellers();
         }
       }
     } else {
-      return listSellers()
+      return listSellers();
     }
   } else {
-    const sellerId = parseFloat(selectedSeller.split(' - ')[0])
-    log(chalk.blue('// Seller edit'))
+    const sellerId = parseFloat(selectedSeller.split(' - ')[0]);
+    log(chalk.blue('// Seller edit'));
     const { name } = await inquirer.prompt([{
       type: 'input',
       name: 'name',
@@ -117,9 +117,9 @@ async function listSellers() {
 
     for (let i = 0; i < sellers.length; i++) {
       if (sellerId === sellers[i].id) {
-        sellers[i].name = name
-        log(chalk.green('-- Seller successfully edited!'))
-        return listSellers()
+        sellers[i].name = name;
+        log(chalk.green('-- Seller successfully edited!'));
+        return listSellers();
       }
     }
   }
@@ -134,15 +134,15 @@ async function newSeller(sale = false) {
   }]);
 
   if (!name) {
-    log(chalk.red('Invalid name!'))
-    return newSeller()
+    log(chalk.red('Invalid name!'));
+    return newSeller();
   }
 
   let createdSeller = {
     id: (sellers.length + 1),
     name,
     sales: []
-  }
+  };
 
   sellers.push(createdSeller);
 
@@ -255,6 +255,32 @@ async function listSales() {
     return start();
   }
 
+  const { searchForm } = await inquirer.prompt([{
+    type: 'list',
+    name: 'searchForm',
+    message: 'Select search form',
+    choices: [
+      '1 - All',
+      '2 - Filter',
+      '3 - Return'
+    ]
+  }]);
+
+  if (searchForm.includes('3')) {
+    return start();
+  } else if (searchForm.includes('2')) {
+    const { searchParameter } = await inquirer.prompt([{
+      type: 'input',
+      name: 'searchParameter',
+      message: 'Search parameter',
+      validate: (input) => {
+        return !input ? 'Invalid parameter' : true
+      }
+    }]);
+
+    tempSales = tempSales.filter(t => JSON.stringify(t).includes(searchParameter));
+  }
+
   tempSales.sort((a, b) => moment(b.dateTime, 'DD/MM/YYYY HH:mm:ss') - moment(a.dateTime, 'DD/MM/YYYY HH:mm:ss'));
 
   log(chalk.yellow(`Amount of sales: ${tempSales.length}`))
@@ -273,7 +299,7 @@ async function listSales() {
   if (selectedSale === 'Return') {
     return start();
   } else {
-    return selectedSaleOptions(parseFloat(selectedSale.split('|')[0].split(':')[1].trim()))
+    return selectedSaleOptions(parseFloat(selectedSale.split('|')[0].split(':')[1].trim()));
   }
 }
 
@@ -290,13 +316,12 @@ async function selectedSaleOptions(saleId) {
   }]);
 
   if (option.includes('1')) {
-    let sale = await getSales(saleId)
-    return editOptions(saleId, sale)
-
+    let sale = await getSales(saleId);
+    return editOptions(saleId, sale);
   } else if (option.includes('2')) {
-    return deleteSale(saleId)
+    return deleteSale(saleId);
   } else {
-    return listSales()
+    return listSales();
   }
 }
 
@@ -315,15 +340,15 @@ async function deleteSale(saleId) {
     for (let i = 0; i < sellers.length; i++) {
       for (let j = 0; j < sellers[i].sales.length; j++) {
         if (sellers[i].sales[j].id === saleId) {
-          sellers[i].sales.splice(j, 1)
+          sellers[i].sales.splice(j, 1);
           log(chalk.green('Sale successfully deleted'))
-          return listSales()
+          return listSales();
         }
       }
     }
 
   } else {
-    return selectedSaleOptions(saleId)
+    return selectedSaleOptions(saleId);
   }
 }
 
@@ -342,8 +367,8 @@ async function editOptions(saleId, sale) {
     ]
   }]);
 
-  log(chalk.gray('Sale in edition'))
-  log(chalk.gray(`Id: ${sale.id} | DateTime: ${sale.dateTime} | Value: ${sale.value} | Description: ${sale.description} | Client: ${sale.client} | Seller: ${sale.seller}`))
+  log(chalk.gray('Sale in edition'));
+  log(chalk.gray(`Id: ${sale.id} | DateTime: ${sale.dateTime} | Value: ${sale.value} | Description: ${sale.description} | Client: ${sale.client} | Seller: ${sale.seller}`));
 
   if (editOption.includes('1')) {
     const {
@@ -357,10 +382,10 @@ async function editOptions(saleId, sale) {
           return !input ? 'Invalid client name' : true
         }
       }
-    ])
+    ]);
 
-    sale.client = client
-    return editOptions(saleId, sale)
+    sale.client = client;
+    return editOptions(saleId, sale);
   } else if (editOption.includes('2')) {
     const {
       description,
@@ -373,10 +398,10 @@ async function editOptions(saleId, sale) {
           return !input ? 'Invalid description' : true
         }
       },
-    ])
+    ]);
 
-    sale.description = description
-    return editOptions(saleId, sale)
+    sale.description = description;
+    return editOptions(saleId, sale);
 
   } else if (editOption.includes('3')) {
     const {
@@ -390,10 +415,10 @@ async function editOptions(saleId, sale) {
           return isNaN(input) ? 'Invalid number' : true
         }
       },
-    ])
+    ]);
 
-    sale.value = value
-    return editOptions(saleId, sale)
+    sale.value = value;
+    return editOptions(saleId, sale);
   
   } else if (editOption.includes('4')) {
     let { selectedSeller } = await inquirer.prompt([{
@@ -406,24 +431,23 @@ async function editOptions(saleId, sale) {
       ]
     }]);
 
-    const sellerId = selectedSeller.split(' - ')[0]
-    sale.newSeller = sellerId
-    return editOptions(saleId, sale)
+    const sellerId = selectedSeller.split(' - ')[0];
+    sale.newSeller = sellerId;
+    return editOptions(saleId, sale);
 
   } else if (editOption.includes('5')) {
-    return saveEditedSale(saleId, sale)
+    return saveEditedSale(saleId, sale);
   } else {
-    return selectedSaleOptions(saleId)
+    return selectedSaleOptions(saleId);
   }
 }
 
 async function saveEditedSale(saleId, sale) {
-
   if (sale.newSeller) {
     for (let i = 0; i < sellers.length; i++) {
       for (let j = 0; j < sellers[i].sales.length; j++) {
         if (sellers[i].sales[j].id === saleId) {
-          sellers[i].sales.splice(j, 1)
+          sellers[i].sales.splice(j, 1);
         }
       }
       if (sellers[i].id === parseFloat(sale.newSeller)) {
@@ -437,15 +461,15 @@ async function saveEditedSale(saleId, sale) {
       }
     }
     log(chalk.green('Saved changes!'));
-    return listSales()
+    return listSales();
   } else {
     for (let i = 0; i < sellers.length; i++) {
       for (let j = 0; j < sellers[i].sales.length; j++) {
         if (sellers[i].sales[j].id === saleId) {
 
           sellers[i].sales[j].description = sale.description;
-          sellers[i].sales[j].client      = sale.client;
-          sellers[i].sales[j].value       = sale.value;
+          sellers[i].sales[j].client = sale.client;
+          sellers[i].sales[j].value = sale.value;
   
           log(chalk.green('Saved changes!'));
           return listSales();
@@ -465,11 +489,11 @@ async function ranking() {
     choices: [
       '1 - Amount of sales',
       '2 - Total sales value',
-      'Return'
+      '3 - Return'
     ]
   }]);
 
-  if (type === 'Return') {
+  if (type.includes('3')) {
     return start();
   }
 
@@ -480,11 +504,11 @@ async function ranking() {
     return start();
   }
 
-  let totalValue = 0
-  let totalCount = 0
+  let totalValue = 0;
+  let totalCount = 0;
   data.forEach(d => {
-    totalValue += d.totalValue
-    totalCount += d.amountSales
+    totalValue += d.totalValue;
+    totalCount += d.amountSales;
   })
 
   if (type.includes('1')) {
@@ -496,8 +520,8 @@ async function ranking() {
   }
 
   table(data);
-  log(chalk.yellow(`Amount of sales: ${totalCount}`))
-  log(chalk.yellow(`Total value: ${parseFloat(totalValue.toFixed(2))}`))
+  log(chalk.yellow(`Amount of sales: ${totalCount}`));
+  log(chalk.yellow(`Total value: ${parseFloat(totalValue.toFixed(2))}`));
 
   return start();
 }
@@ -505,31 +529,31 @@ async function ranking() {
 async function getRankingData() {
   let tempRanking = []
   for (let i = 0; i < sellers.length; i++) {
-    let totalValue = 0
+    let totalValue = 0;
     sellers[i].sales.forEach(s => {
       totalValue += s.value
-    })
+    });
 
     tempRanking.push({
       sellerId: sellers[i].id,
       sellerName: sellers[i].name,
       amountSales: sellers[i].sales.length,
       totalValue
-    })
+    });
   }
 
-  return tempRanking
+  return tempRanking;
 }
 
 async function getSaleId() {
   lastId = 0
   for (let i = 0; i < sellers.length; i++) {
     for (let y = 0; y < sellers[i].sales.length; y++) {
-      lastId = sellers[i].sales[y].id > lastId ? sellers[i].sales[y].id : lastId
+      lastId = sellers[i].sales[y].id > lastId ? sellers[i].sales[y].id : lastId;
     }
   }
 
-  return (lastId + 1)
+  return (lastId + 1);
 }
 
 async function getSales(saleId = null) {
@@ -544,19 +568,19 @@ async function getSales(saleId = null) {
         description: sellers[i].sales[j].description,
         client: sellers[i].sales[j].client,
         seller: sellers[i].name
-      }
+      };
 
       if (saleId && sale.id === saleId) {
-        return sale
+        return sale;
       } else {
         tempSales.push(sale)
       }
-      totalValue += sellers[i].sales[j].value
+      totalValue += sellers[i].sales[j].value;
     }
   }
 
   return {
     tempSales,
     totalValue
-  }
+  };
 }
