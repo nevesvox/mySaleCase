@@ -57,19 +57,19 @@ async function newSeller(sale = false) {
     return newSeller()
   }
 
-  let newSeller = {
+  let createdSeller = {
     id: (sellers.length + 1),
     name,
     sales: []
   }
 
-  sellers.push(newSeller);
+  sellers.push(createdSeller);
 
   log(chalk.green('New seller created!'));
   table(sellers, ["id", "name"]);
 
   if (sale) {
-    return newSale(newSeller);
+    return newSale(createdSeller);
   } else {
     return start();
   }
@@ -255,8 +255,9 @@ async function editOptions(saleId, sale) {
       '1 - Edit client name',
       '2 - Edit description',
       '3 - Edit value',
-      '4 - Save',
-      '5 - Cancel'
+      '4 - Edit seller',
+      '5 - Save',
+      '6 - Cancel'
     ]
   }]);
 
@@ -313,6 +314,21 @@ async function editOptions(saleId, sale) {
     editOptions(saleId, sale)
   
   } else if (editOption.includes('4')) {
+    let { selectedSeller } = await inquirer.prompt([{
+      type: 'list',
+      name: 'selectedSeller',
+      message: 'Select seller',
+      choices: [
+        ...sellers.map(s => `${s.id} - ${s.name}`),
+        'Return'
+      ]
+    }]);
+
+    const sellerId = selectedSeller.split(' - ')[0]
+    sale.newSeller = sellerId
+    return saveEditedSale(saleId, sale)
+
+  } else if (editOption.includes('5')) {
     return saveEditedSale(saleId, sale)
   } else {
     return selectedSaleOptions(saleId)
@@ -320,15 +336,40 @@ async function editOptions(saleId, sale) {
 }
 
 async function saveEditedSale(saleId, sale) {
-  for (let i = 0; i < sellers.length; i++) {
-    for (let j = 0; j < sellers[i].sales.length; j++) {
-      if (sellers[i].sales[j].id === saleId) {
-        sellers[i].sales[j].description = sale.description;
-        sellers[i].sales[j].client = sale.client;
-        sellers[i].sales[j].value = sale.value;
 
-        log(chalk.green('Saved changes!'));
-        return listSales();
+  if (sale.newSeller) {
+    for (let i = 0; i < sellers.length; i++) {
+      for (let j = 0; j < sellers[i].sales.length; j++) {
+        if (
+          sellers[i].sales[j].id     === saleId &&
+          sellers[i].sales[j].seller === sales.seller
+        ) {
+          sellers[i].sales.splice(j, 1)
+        }
+      }
+      if (sellers[i].id === parseFloat(sale.newSeller)) {
+        sellers[i].sales.unshift({
+          id: sale.id,
+          dateTime: sale.dateTime,
+          client: sale.client,
+          description: sale.description,
+          value: sale.value,
+        });
+      }
+    }
+    log(chalk.green('Saved changes!'));
+    return listSales()
+  } else {
+    for (let i = 0; i < sellers.length; i++) {
+      for (let j = 0; j < sellers[i].sales.length; j++) {
+        if (sellers[i].sales[j].id === saleId) {
+          sellers[i].sales[j].description = sale.description;
+          sellers[i].sales[j].client = sale.client;
+          sellers[i].sales[j].value = sale.value;
+  
+          log(chalk.green('Saved changes!'));
+          return listSales();
+        }
       }
     }
   }
