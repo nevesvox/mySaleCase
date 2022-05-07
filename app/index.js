@@ -14,7 +14,7 @@ start(true)
 async function start(first = false) {
 
   if (first) {
-    log(chalk.blue('Welcome to my sales case'))
+    log(chalk.blue('// Welcome to my sales case'))
   }
 
   const { menu } = await inquirer.prompt([{
@@ -39,8 +39,90 @@ async function start(first = false) {
     return newSeller();
   } else if (menu.includes('4')) {
     return listSales();
+  } else if (menu.includes('5')) {
+    return listSellers();
   } else if (menu.includes('6')) {
-    log(chalk.green('Goodbye! :)'))
+    log(chalk.green('-- Goodbye! :)'))
+  }
+}
+
+async function listSellers() {
+  if (sellers.length === 0) {
+    log(chalk.red('No registered seller!'))
+    return start()
+  }
+  log(chalk.blue('// Sellers list'))
+  const { selectedSeller } = await inquirer.prompt([{
+    type: 'list',
+    name: 'selectedSeller',
+    message: 'Select a seller',
+    choices: [
+      ...sellers.map(s => `${s.id} - ${s.name}`),
+      'Return'
+    ]
+  }]);
+
+  if (selectedSeller === 'Return') {
+    return start()
+  }
+
+  log(chalk.blue('// Seller options'))
+  const { option } = await inquirer.prompt([{
+    type: 'list',
+    name: 'option',
+    message: 'Action',
+    choices: [
+      '1 - Edit',
+      '2 - Delete',
+      'Return'
+    ]
+  }]);
+
+  if (option === 'Return') {
+    return listSellers()
+  } else if (option.includes('2'))  {
+    log(chalk.blue('// Seller delete'))
+    const { confirm } = await inquirer.prompt([{
+      type: 'list',
+      name: 'confirm',
+      message: 'All sales linked to the seller will be excluded! Confirm?',
+      choices: [
+        '1 - Yes',
+        '2 - No'
+      ]
+    }]);
+
+    if (confirm.includes('1')) {
+      const sellerId = parseFloat(selectedSeller.split(' - ')[0])
+      for (let i = 0; i < sellers.length; i++) {
+        if (sellerId === sellers[i].id) {
+          sellers.splice(i, 1)
+          log(chalk.green('-- Seller successfully deleted!'))
+          return listSellers()
+        }
+      }
+    } else {
+      return listSellers()
+    }
+  } else {
+    const sellerId = parseFloat(selectedSeller.split(' - ')[0])
+    log(chalk.blue('// Seller edit'))
+    const { name } = await inquirer.prompt([{
+      type: 'input',
+      name: 'name',
+      message: 'Seller name:',
+      validate: (input) => {
+        return !input ? 'Invalid name' : true
+      }
+    }]);
+
+    for (let i = 0; i < sellers.length; i++) {
+      if (sellerId === sellers[i].id) {
+        sellers[i].name = name
+        log(chalk.green('-- Seller successfully edited!'))
+        return listSellers()
+      }
+    }
   }
 }
 
@@ -65,7 +147,7 @@ async function newSeller(sale = false) {
 
   sellers.push(createdSeller);
 
-  log(chalk.green('New seller created!'));
+  log(chalk.green('-- New seller created!'));
   table(sellers, ["id", "name"]);
 
   if (sale) {
@@ -147,7 +229,7 @@ async function newSale(createdSeller = null) {
         value,
       });
 
-      log(chalk.green('// Sale created'));
+      log(chalk.green('-- Sale created'));
       log(chalk.blue('// Seller sales'));
       table(sellers[i].sales);
       
@@ -156,8 +238,8 @@ async function newSale(createdSeller = null) {
         totalValue += s.value
       })
 
-      log(chalk.green(`Amount of sales: ${sellers[i].sales.length}`))
-      log(chalk.green(`Total value: ${parseFloat(totalValue.toFixed(2))}`))
+      log(chalk.yellow(`Amount of sales: ${sellers[i].sales.length}`))
+      log(chalk.yellow(`Total value: ${parseFloat(totalValue.toFixed(2))}`))
     }
   }
 
@@ -176,8 +258,8 @@ async function listSales() {
 
   tempSales.sort((a, b) => moment(b.dateTime, 'DD/MM/YYYY HH:mm:ss') - moment(a.dateTime, 'DD/MM/YYYY HH:mm:ss'));
 
-  log(chalk.green(`Amount of sales: ${tempSales.length}`))
-  log(chalk.green(`Total value: ${parseFloat(totalValue.toFixed(2))}`))
+  log(chalk.yellow(`Amount of sales: ${tempSales.length}`))
+  log(chalk.yellow(`Total value: ${parseFloat(totalValue.toFixed(2))}`))
 
   const { selectedSale } = await inquirer.prompt([{
     type: 'list',
@@ -250,7 +332,7 @@ async function editOptions(saleId, sale) {
   const { editOption } = await inquirer.prompt([{
     type: 'list',
     name: 'editOption',
-    message: 'Action',
+    message: 'Select what you want to edit',
     choices: [
       '1 - Edit client name',
       '2 - Edit description',
@@ -261,6 +343,7 @@ async function editOptions(saleId, sale) {
     ]
   }]);
 
+  log(chalk.gray('Sale in edition'))
   log(chalk.gray(`Id: ${sale.id} | DateTime: ${sale.dateTime} | Value: ${sale.value} | Description: ${sale.description} | Client: ${sale.client} | Seller: ${sale.seller}`))
 
   if (editOption.includes('1')) {
@@ -278,7 +361,7 @@ async function editOptions(saleId, sale) {
     ])
 
     sale.client = client
-    editOptions(saleId, sale)
+    return editOptions(saleId, sale)
   } else if (editOption.includes('2')) {
     const {
       description,
@@ -294,7 +377,7 @@ async function editOptions(saleId, sale) {
     ])
 
     sale.description = description
-    editOptions(saleId, sale)
+    return editOptions(saleId, sale)
 
   } else if (editOption.includes('3')) {
     const {
@@ -311,7 +394,7 @@ async function editOptions(saleId, sale) {
     ])
 
     sale.value = value
-    editOptions(saleId, sale)
+    return editOptions(saleId, sale)
   
   } else if (editOption.includes('4')) {
     let { selectedSeller } = await inquirer.prompt([{
@@ -326,7 +409,7 @@ async function editOptions(saleId, sale) {
 
     const sellerId = selectedSeller.split(' - ')[0]
     sale.newSeller = sellerId
-    return saveEditedSale(saleId, sale)
+    return editOptions(saleId, sale)
 
   } else if (editOption.includes('5')) {
     return saveEditedSale(saleId, sale)
@@ -363,9 +446,10 @@ async function saveEditedSale(saleId, sale) {
     for (let i = 0; i < sellers.length; i++) {
       for (let j = 0; j < sellers[i].sales.length; j++) {
         if (sellers[i].sales[j].id === saleId) {
+
           sellers[i].sales[j].description = sale.description;
-          sellers[i].sales[j].client = sale.client;
-          sellers[i].sales[j].value = sale.value;
+          sellers[i].sales[j].client      = sale.client;
+          sellers[i].sales[j].value       = sale.value;
   
           log(chalk.green('Saved changes!'));
           return listSales();
@@ -400,6 +484,13 @@ async function ranking() {
     return start();
   }
 
+  let totalValue = 0
+  let totalCount = 0
+  data.forEach(d => {
+    totalValue += d.totalValue
+    totalCount += d.amountSales
+  })
+
   if (type.includes('1')) {
     log(chalk.blue('// Ranking (Sorted by amount of sales)'));
     data.sort((a, b) => b.amountSales - a.amountSales);
@@ -409,6 +500,8 @@ async function ranking() {
   }
 
   table(data);
+  log(chalk.yellow(`Amount of sales: ${totalCount}`))
+  log(chalk.yellow(`Total value: ${parseFloat(totalValue.toFixed(2))}`))
 
   return start();
 }
