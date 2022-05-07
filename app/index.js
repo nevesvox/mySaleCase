@@ -213,12 +213,38 @@ async function selectedSaleOptions(saleId) {
     return editOptions(saleId, sale)
 
   } else if (option.includes('2')) {
-
+    return deleteSale(saleId)
   } else {
     return listSales()
   }
 }
 
+async function deleteSale(saleId) {
+  const { option } = await inquirer.prompt([{
+    type: 'list',
+    name: 'option',
+    message: 'Confirm the deletion of the sale?',
+    choices: [
+      '1 - Yes',
+      '2 - No',
+    ]
+  }]);
+
+  if (option.includes('1')) {
+    for (let i = 0; i < sellers.length; i++) {
+      for (let j = 0; j < sellers[i].sales.length; j++) {
+        if (sellers[i].sales[j].id === saleId) {
+          sellers[i].sales.splice(j, 1)
+          log(chalk.green('Sale successfully deleted'))
+          return listSales()
+        }
+      }
+    }
+
+  } else {
+    return selectedSaleOptions(saleId)
+  }
+}
 
 async function editOptions(saleId, sale) {
   const { editOption } = await inquirer.prompt([{
