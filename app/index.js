@@ -6,7 +6,6 @@ const moment = require('moment');
 const log = console.log;
 const table = console.table;
 
-let sales = []
 let sellers = []
 
 start(true)
@@ -252,7 +251,7 @@ async function listSales() {
   let { tempSales, totalValue } = await getSales();
 
   if (tempSales.length === 0) {
-    log(chalk.red('No sales created'));
+    log(chalk.red('No sales created!'));
     return start();
   }
 
@@ -423,10 +422,7 @@ async function saveEditedSale(saleId, sale) {
   if (sale.newSeller) {
     for (let i = 0; i < sellers.length; i++) {
       for (let j = 0; j < sellers[i].sales.length; j++) {
-        if (
-          sellers[i].sales[j].id     === saleId &&
-          sellers[i].sales[j].seller === sales.seller
-        ) {
+        if (sellers[i].sales[j].id === saleId) {
           sellers[i].sales.splice(j, 1)
         }
       }
@@ -480,7 +476,7 @@ async function ranking() {
   let data = await getRankingData();
 
   if (data.length === 0) {
-    log(chalk.red('No data for ranking'));
+    log(chalk.red('No data for ranking!'));
     return start();
   }
 
