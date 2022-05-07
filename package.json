@@ -1,0 +1,25 @@
+{
+  "name": "mysalecase",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nevesvox/mySaleCase.git"
+  },
+  "author": "Gabriel Neves Maciel",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nevesvox/mySaleCase/issues"
+  },
+  "homepage": "https://github.com/nevesvox/mySaleCase#readme",
+  "dependencies": {
+    "chalk": "^4.1.0",
+    "inquirer": "^8.2.4",
+    "moment": "^2.29.3"
+  }
+}
