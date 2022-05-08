@@ -1,7 +1,7 @@
 const inquirer = require('inquirer');
 const chalk = require('chalk');
-const moment = require('moment'); 
-
+const moment = require('moment');
+const xlsx = require("json-as-xlsx")
 
 const log = console.log;
 const table = console.table;
@@ -57,12 +57,37 @@ async function listSellers() {
     message: 'Select a seller',
     choices: [
       ...sellers.map(s => `${s.id} - ${s.name}`),
+      'Export',
       'Return'
     ]
   }]);
 
   if (selectedSeller === 'Return') {
     return start();
+  } else if (selectedSeller === 'Export') {
+    let data = [
+      {
+        sheet: "Sellers",
+        columns: [
+          { label: "Id", value: "id" },
+          { label: "Name", value: "name" },
+        ],
+        content: sellers.map(s => {
+          return {
+            id: s.id,
+            name: s.name
+          }
+        })
+      },
+    ];
+    
+    xlsx(data, {
+      fileName: "Sellers"
+    });
+
+    log(chalk.green('-- File generated in root directory!'));
+
+    return listSellers();
   }
 
   log(chalk.blue('// Seller options'));
@@ -278,7 +303,7 @@ async function listSales() {
       }
     }]);
 
-    tempSales = tempSales.filter(t => JSON.stringify(t).includes(searchParameter));
+    tempSales = tempSales.filter(t => JSON.stringify(t).toLocaleLowerCase().includes(searchParameter.toLocaleLowerCase()));
   }
 
   tempSales.sort((a, b) => moment(b.dateTime, 'DD/MM/YYYY HH:mm:ss') - moment(a.dateTime, 'DD/MM/YYYY HH:mm:ss'));
@@ -292,12 +317,35 @@ async function listSales() {
     message: 'Select sale to edit/delete',
     choices: [
       ...tempSales.map(t => `Id: ${t.id} | DateTime: ${t.dateTime} | Value: ${t.value} | Description: ${t.description} | Client: ${t.client} | Seller: ${t.seller}`),
+      'Export',
       'Return'
     ]
   }]);
 
   if (selectedSale === 'Return') {
     return start();
+  } else if (selectedSale === 'Export') {
+    let exportData = [
+      {
+        sheet: "Sales",
+        columns: [
+          { label: "Date Time", value: "dateTime" },
+          { label: "Value", value: "value" },
+          { label: "Description", value: "description" },
+          { label: "Client", value: "client" },
+          { label: "Seller", value: "seller" },
+        ],
+        content: tempSales
+      },
+    ];
+    
+    xlsx(exportData, {
+      fileName: 'Sales'
+    });
+
+    log(chalk.green('-- File generated in root directory!'));
+
+    return listSales();
   } else {
     return selectedSaleOptions(parseFloat(selectedSale.split('|')[0].split(':')[1].trim()));
   }
@@ -511,17 +559,51 @@ async function ranking() {
     totalCount += d.amountSales;
   })
 
+  let sortType = null
   if (type.includes('1')) {
-    log(chalk.blue('// Ranking (Sorted by amount of sales)'));
+    sortType = `(Sorted by amount of sales)`
+    log(chalk.blue(`// Ranking ${sortType}`));
     data.sort((a, b) => b.amountSales - a.amountSales);
   } else if (type.includes('2')) {
-    log(chalk.blue('// Ranking (Sorted by total sales value)'));
+    sortType = `(Sorted by total sales value)`
+    log(chalk.blue(`// Ranking ${sortType}`));
     data.sort((a, b) => b.totalValue - a.totalValue);
   }
 
   table(data);
   log(chalk.yellow(`Amount of sales: ${totalCount}`));
   log(chalk.yellow(`Total value: ${parseFloat(totalValue.toFixed(2))}`));
+
+  const { action } = await inquirer.prompt([{
+    type: 'list',
+    name: 'action',
+    message: 'Select action',
+    choices: [
+      '1 - Export',
+      '2 - Return'
+    ]
+  }]);
+
+  if (action.includes('1')) {
+    let exportData = [
+      {
+        sheet: "Ranking",
+        columns: [
+          { label: "Seller Id", value: "sellerId" },
+          { label: "Seller Name", value: "sellerName" },
+          { label: "Amount Sales", value: "amountSales" },
+          { label: "Total Value", value: "totalValue" },
+        ],
+        content: data
+      },
+    ];
+
+    xlsx(exportData, {
+      fileName: `Ranking ${sortType}`
+    });
+
+    log(chalk.green('-- File generated in root directory!'));
+  }
 
   return start();
 }
