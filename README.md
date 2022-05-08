@@ -4,24 +4,24 @@
 ## 🚀Features
 
 - Ranking of Sellers
-    -- Sorted by amount of sales/total sales value
-    -- Export list
+  | Sorted by amount of sales/total sales value |
+  | Export list |
 - New Sale
-    -- Force create a seller when there is none registered
-    -- Fields validations
+  | Force create a seller when there is none registered |
+  | Fields validations |
 - New Seller
-    -- Fields validations
+  | Fields validations |
 - List Sales
-    -- Filter
-    -- Export Sales
-    -- Edit Sale
-    -- Delete Sale
+  | Filter |
+  | Export Sales |
+  | Edit Sale |
+  | Delete Sale |
 - List Sellers
-    -- Esport list
-    -- Edit Seller
-    -- Delete Seller
+  | Esport list |
+  | Edit Seller |
+  | Delete Seller |
 - Exit
-    -- Finish the application
+  | Finish the application |
 
 ---
 ## 👨‍💻Tech
@@ -39,5 +39,9 @@ Required:
 Install the dependencies:
 ```sh
 npm i
+```
+
+Run Aplication: 
+```sh
 npm start
 ```
